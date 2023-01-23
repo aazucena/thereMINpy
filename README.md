@@ -20,7 +20,6 @@ Based on an existing instrument Thermine that reacts to the pitch based on the h
     - ~~Ohm Resistors~~
       - ~~1K~~
 
-
 - ### Software
   - Framework:
     - Arduino IDE
@@ -50,9 +49,13 @@ Based on an existing instrument Thermine that reacts to the pitch based on the h
   
   
 ![iteration-2](docs\diagrams\thereMINpy_p2.png)
+- ### Third Iteration
+  - 
+
 ## Contributions
 - Aldrin Azucena
   - Arduino Developer
   - Videographer
   - Photographer
+  - Musician
 
