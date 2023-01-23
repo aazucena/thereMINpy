@@ -39,12 +39,17 @@ Based on an existing instrument Thermine that reacts to the pitch based on the h
    - Planned to implement the white noise that increase/decreases when the pitch changes
    - Add the LDR Sensor to change the pitch of the sound
 
+
+![iteration-1](docs\diagrams\thereMINpy_p1.png)
+
 - ### Second Iteration
   - Cancel the plan to add the pulsing lights 
   - Add the volume dial to change the gain based on the potentionmeter's value
   - Replace the main sensor which is the LDR with Ultrasonic sensors
   - Make the pitch sound limit to the lower frequency from around 100Hz to 180Hz
   
+  
+![iteration-2](docs\diagrams\thereMINpy_p2.png)
 ## Contributions
 - Aldrin Azucena
   - Arduino Developer
