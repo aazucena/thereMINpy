@@ -50,7 +50,7 @@ The theremin, an already-existing instrument that adjusts pitch depending on the
   - Have the device be in a small form factor
   - Attach the device with a small speaker
 
-![iteration-1](docs\designs\iteration_1.png)
+![iteration-1](designs\iteration_1.png)
 
 - ### Second
   - Cancel the plan to add the pulsing lights 
@@ -59,7 +59,7 @@ The theremin, an already-existing instrument that adjusts pitch depending on the
   - Upgrade the small speakers to bigger speakers
   - Change the device form factor to the larger size
   
-![iteration-2](docs\designs\iteration_2.png)
+![iteration-2](designs\iteration_2.png)
 - ### Third (final)
   - Add the volume dial to change the gain based on the potentiometer's value
   - Reintegrate 10 pulsing white LEDs
@@ -68,7 +68,13 @@ The theremin, an already-existing instrument that adjusts pitch depending on the
   - Include a 2 arc structure as it can function either as the table legs or a leg rests for the instrument
   - Add 3 indicator lights for the volume dial potentiometer
 
-![iteration-3](docs\designs\iteration_3.png)
+![iteration-3](designs\iteration_3.png)
+
+<br>
+<br>
+<br>
+<br>
+<br>
 
 ## Pseudocode
 
@@ -113,11 +119,4 @@ The theremin, an already-existing instrument that adjusts pitch depending on the
 ///
 /// End
 ```
-
-## Contributions
-- Aldrin Azucena
-  - Arduino Developer
-  - Videographer
-  - Photographer
-  - Music Producer
 
