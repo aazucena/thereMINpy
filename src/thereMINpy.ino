@@ -1,155 +1,227 @@
 #include <math.h>
 #include <MozziGuts.h>
-#include <Oscil.h> // oscillator
-#include <tables/cos2048_int8.h> // table for Oscils to play
-#include <AutoMap.h> // maps unpredictable inputs to a range
+#include <Oscil.h>               // oscillator
+#include <tables/sin2048_int8.h> // sine table for oscillator
+#include <EventDelay.h>
+#include <Smooth.h>
+#include <AutoMap.h>             // maps unpredictable inputs to a range
+#define CONTROL_RATE 64
+
+
 
 /// Constant values based on the distance the ultrasonic sensor's detection ranged distance
 
-const int MIN_DISTANCE = 0; // cm
-const int MAX_DISTANCE = 30; // cm
+const int MIN_DISTANCE = 0;       // cm
+const int MAX_DISTANCE = 80;      // cm
 const int LIMITED_DISTANCE = 100; // cm
 const int MOD_DISTANCE = 1;
 
-
 /// Constant min & max values for the carrier frequency when inputting to the AutoMap
-const int MIN_CARRIER_FREQ = 22;
-const int MAX_CARRIER_FREQ = 440;
+const int MIN_CARRIER_FREQ = 440;
+const int MAX_CARRIER_FREQ = 50;
 
 // AutoMap kMapCarrierFreq(0,1023,MIN_CARRIER_FREQ,MAX_CARRIER_FREQ);
-AutoMap kMapCarrierFreq(MIN_DISTANCE,MAX_DISTANCE <= LIMITED_DISTANCE ? MAX_DISTANCE*MOD_DISTANCE : LIMITED_DISTANCE,MIN_CARRIER_FREQ,MAX_CARRIER_FREQ);
-Oscil<COS2048_NUM_CELLS, AUDIO_RATE> aCarrier(COS2048_DATA);
+AutoMap kMapSine(0, 1023, MIN_CARRIER_FREQ, MAX_CARRIER_FREQ);
+Oscil<SIN2048_NUM_CELLS, AUDIO_RATE> aSin(SIN2048_DATA);
 
-/// Constant min & max values for the dynamic intensity when inputting to the AutoMap
-const int MIN_INTENSITY = 700;
-const int MAX_INTENSITY = 10;
 
-// AutoMap kMapIntensity(0,1023,MIN_INTENSITY,MAX_INTENSITY);
-AutoMap kMapIntensity(MIN_DISTANCE,MAX_DISTANCE <= LIMITED_DISTANCE ? MAX_DISTANCE*MOD_DISTANCE : LIMITED_DISTANCE,MIN_INTENSITY,MAX_INTENSITY);
-Oscil<COS2048_NUM_CELLS, AUDIO_RATE> aModulator(COS2048_DATA);
 
-/// Default Analog Pin for the LDR Component 
-const int LDR_PIN = 0;
-const int POT_PIN = 1;
+Smooth <int> kSmoothFreq(0.975f);
 
+
+/// Default Analog Pin for the LDR Component
+const int POT_PIN = 0;
 
 /// Default Digital Pins for the Ultrasonic Sensor
-const int TRIGGER_PIN = 10;
-const int ECHO_PIN = 11;
 
+const int RED_INDICATOR_PIN = 2;
+const int YELLOW_INDICATOR_PIN = 3;
+const int GREEN_INDICATOR_PIN = 4;
+
+const int RIGHT_LEDS_PIN = 5;
+const int LEFT_LEDS_PIN = 6;
+
+const int POT_MIN = 1023;
+const int POT_MAX = 0;
+
+const int SENSOR_MIN = 326;
+const int SENSOR_MAX = 4;
+
+const int SOUND_MIN = 0;
+const int SOUND_QUARTER = 64;
+const int SOUND_HALF = 127;
+const int SOUND_THREE_QUARTERS = 191;
+const int SOUND_MAX = 255;
+
+const int RIGHT_TRIGGER_PIN = 10;
+const int RIGHT_ECHO_PIN = 11;
+const int LEFT_TRIGGER_PIN = 12;
+const int LEFT_ECHO_PIN = 13;
+
+const int VOLUME_MIN = 0;
+const int VOLUME_THIRDS = 85;
+const int VOLUME_TWO_THIRDS = 170;
+const int VOLUME_MAX = 255;
 
 /// Modifier for Harmonics
 int mod_ratio = 3;
 
-
-/// Global controller values 
+/// Global controller values
 long fm_intensity; // calculated value of the intensity value
-int ldr_value; // value from the LDR Analog Read
 
 byte volume; // volume variable based on byt data type
 
-unsigned long ultrasonic_duration; // duration value recorded from the sensor
-int ultrasonic_value; // calculated value of the distance between the target and the sensor
+unsigned long left_duration;
+int left_distance;
+unsigned long right_duration;
+int right_distance;
 
 void setup()
 {
   // Initialize Communication Serial
-  Serial.begin(115200);
-  pinMode(TRIGGER_PIN, OUTPUT); // Initialize the pin withe ultrasonic sensor's trigger pin
-  pinMode(ECHO_PIN, INPUT);// Initialize the pin withe ultrasonic sensor's echo output  pin
-  startMozzi();
+  Serial.begin(9600);
+  // Serial.begin(115200);
+
+  pinMode(RED_INDICATOR_PIN, OUTPUT);
+  pinMode(YELLOW_INDICATOR_PIN, OUTPUT);
+  pinMode(GREEN_INDICATOR_PIN, OUTPUT);
+  pinMode(RIGHT_LEDS_PIN, OUTPUT);
+  pinMode(LEFT_LEDS_PIN, OUTPUT);
+
+  pinMode(LEFT_TRIGGER_PIN, OUTPUT);  // Initialize the pin withe ultrasonic sensor's trigger pin
+  pinMode(LEFT_ECHO_PIN, INPUT);      // Initialize the pin withe ultrasonic sensor's echo output  pin
+  pinMode(RIGHT_TRIGGER_PIN, OUTPUT); // Initialize the pin withe ultrasonic sensor's trigger pin
+  pinMode(RIGHT_ECHO_PIN, INPUT);     // Initialize the pin withe ultrasonic sensor's echo output  pin
+  startMozzi(CONTROL_RATE);
 }
 
 /**
  * @brief Observes the controller's actions
- * 
+ *
  */
-void updateControl(){
-  
-  /// Retrieve the duration of the ultrasonic sensor
-  ultrasonic_duration = getSensorDuration();
+void updateControl()
+{
+  indicateVolume(POT_PIN);
 
-  /// Calculate the distance based on duration
-  ultrasonic_value = ultrasonic_duration*0.034/2;
+  /// Retrieve the sensor's detection distance based on duration
+  detectSensor(LEFT_TRIGGER_PIN, LEFT_ECHO_PIN, LEFT_LEDS_PIN);
 
   // ultrasonic_value = ultrasonic_value <= 0 && ultrasonic_value > 100 ? 0 : ultrasonic_value;
-
-  // ldr_value = mozziAnalogRead(LDR_PIN);
-
-  int pot_value = mozziAnalogRead(POT_PIN);
-  
-
-  /// if the sensor detects at a certain distance, play the audio
-  if (ultrasonic_value < MAX_DISTANCE) {
-
-    /// Set the volume value based on the potentionmeter's value
-    volume = map(pot_value, 0, 1023, 255, 0);
-
-    /// map the knob to carrier frequency
-    int carrier_freq = kMapCarrierFreq(ultrasonic_value);
-
-    /// calculate the modulation frequency to stay in ratio
-    int mod_freq = carrier_freq * mod_ratio;
-
-    /// set the FM oscillator frequencies to the calculated values
-    aCarrier.setFreq(carrier_freq);
-    aModulator.setFreq(mod_freq);
-
-    fm_intensity = kMapIntensity(ldr_value);
-    
-    /// print the value to the Serial monitor for debugging
-    Serial.print("duration: ");
-    Serial.print(ultrasonic_duration);
-
-    
-    Serial.print(", distance: ");
-    Serial.print(ultrasonic_value);
-
-
-    Serial.print(", fm_intensity: ");
-    Serial.println(fm_intensity);
-  } else {
-
-    /// don't play the audio
-    volume = 0;
-  }
-
+  // detectSensorByDistance(left_sensor_value, POT_PIN);
+  detectSensorByDistance(POT_PIN);
 }
 
 /**
  * @brief Updates the audio frequency code that should return the integer between -244 to 243
- * 
- * @return int 
+ *
+ * @return int
  */
-int updateAudio(){
-  /// calculate the modulation fn frequency
-  long modulation = fm_intensity * aModulator.next();
+int updateAudio()
+{
   /// return the phMod of the modulation fm frequency
-  int sine = aCarrier.phMod(modulation);
-  
-  return (sine * volume)>>8; 
+  int sine = aSin.next();
+
+  return (sine * volume) >> 8;
 }
 
-void loop() {
+void loop()
+{
   audioHook();
 }
 
-/**
- * @brief Get the Sensor Duration object from the Trigger and Echo Pin of the Ultrasonic Sensor
- * 
- * @return unsigned long 
- */
-unsigned long getSensorDuration() {
+void detectSensorByDistance(int pot_pin)
+{
+
+  /// if the sensor detects at a certain distance, play the audio
+  if (left_distance > 0 && left_distance < MAX_DISTANCE)
+  {
+
+    volume = getVolume(pot_pin);
+    /// Set the volume value based on the potentionmeter's value
+
+    /// map the knob to carrier frequency
+    int sine_freq = kMapSine(left_distance);
+    
+    int smoothed_freq = kSmoothFreq.next(sine_freq);
+    aSin.setFreq(smoothed_freq);
+  }
+  else
+  {
+
+    /// don't play the audio
+    volume = (volume > 10) ? volume - 2 : 0;      
+  }
+}
+
+void indicateVolume(int pot_pin)
+{
+  int pot_value = mozziAnalogRead(pot_pin);
+  int brightness = map(pot_value, POT_MIN, POT_MAX, VOLUME_MIN, VOLUME_MAX);
+
+  if (brightness >= VOLUME_MIN && brightness <= VOLUME_THIRDS)
+  {
+    analogWrite(RED_INDICATOR_PIN, 255);
+    analogWrite(YELLOW_INDICATOR_PIN, 0);
+    analogWrite(GREEN_INDICATOR_PIN, 0);
+  }
+  else if (brightness > VOLUME_THIRDS && brightness <= VOLUME_TWO_THIRDS)
+  {
+    analogWrite(RED_INDICATOR_PIN, 0);
+    analogWrite(YELLOW_INDICATOR_PIN, 255);
+    analogWrite(GREEN_INDICATOR_PIN, 0);
+  }
+  else if (brightness > VOLUME_TWO_THIRDS && brightness <= VOLUME_MAX)
+  {
+    analogWrite(RED_INDICATOR_PIN, 0);
+    analogWrite(YELLOW_INDICATOR_PIN, 0);
+    analogWrite(GREEN_INDICATOR_PIN, 255);
+  }
+  else
+  {
+    analogWrite(RED_INDICATOR_PIN, 0);
+    analogWrite(YELLOW_INDICATOR_PIN, 0);
+    analogWrite(GREEN_INDICATOR_PIN, 0);
+  }
+
+}
+
+byte getVolume(int pot_pin)
+{
+  int pot_value = mozziAnalogRead(pot_pin);
+
+  return map(pot_value, POT_MIN, POT_MAX, VOLUME_MIN, VOLUME_MAX);
+}
+
+void detectSensor(int trig_pin, int echo_pin, int led_pin)
+{
+  left_duration = getSensorDuration(trig_pin, echo_pin);
+  left_distance = left_duration * 0.034 / 2;
+
+  int ambience = map(left_distance, SENSOR_MIN, SENSOR_MAX, SOUND_MIN, SOUND_MAX);
+
+  if (left_distance < MAX_DISTANCE)
+  {
+    {
+      analogWrite(led_pin, SOUND_MAX - ambience);
+    }
+  }
+  else
+  {
+    analogWrite(led_pin, 0);
+  }
+}
+
+unsigned long getSensorDuration(int trig_pin, int echo_pin)
+{
   /// Clear the trigger pin value
-  
-  digitalWrite(TRIGGER_PIN, HIGH);
-  delayMicroseconds(1);
-  
-  digitalWrite(TRIGGER_PIN, LOW);
-  delayMicroseconds(100);
+  digitalWrite(trig_pin, LOW);
+  delayMicroseconds(2);
+
+  digitalWrite(trig_pin, HIGH);
+  delayMicroseconds(1000);
   /// Set Trigger Pin value for 2 Microseconds
 
-  digitalWrite(TRIGGER_PIN, HIGH);
+  digitalWrite(trig_pin, LOW);
 
-  return pulseIn(ECHO_PIN, HIGH);
+  return pulseIn(echo_pin, HIGH);
 }
