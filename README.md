@@ -20,14 +20,13 @@ The theremin, an already-existing instrument that adjusts pitch depending on the
     - Ultrasonic Sensor (x2)
     - Potentiometer
     - Cardboard
-    - 2 Large Fabric
     - Resistors
       - 220 Ohms (x13)
     - LEDs
-      - Green (x1)
-      - Yellow (x1)
+      - Green (x3
+      - Yellow (x3)
       - Red (x1)
-      - White (x10)
+      - Blue (x5)
 
 - ### Software
   - Framework:
@@ -40,6 +39,11 @@ The theremin, an already-existing instrument that adjusts pitch depending on the
     - VSCode
   - Language:
     - C++
+
+
+## Diagram
+
+![diagram](docs\docs/diagrams/thereMINpy.png)
 
 ## Iterations
 - ### First
@@ -119,5 +123,4 @@ The theremin, an already-existing instrument that adjusts pitch depending on the
   - Arduino Developer
   - Videographer
   - Photographer
-  - Music Producer
 
