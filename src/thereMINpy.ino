@@ -23,6 +23,7 @@ const int MAX_CARRIER_FREQ = 50;
 // AutoMap kMapCarrierFreq(0,1023,MIN_CARRIER_FREQ,MAX_CARRIER_FREQ);
 AutoMap kMapSine(0, 1023, MIN_CARRIER_FREQ, MAX_CARRIER_FREQ);
 Oscil<SIN2048_NUM_CELLS, AUDIO_RATE> aSin(SIN2048_DATA);
+Oscil<SIN2048_NUM_CELLS, AUDIO_RATE> bSin(SIN2048_DATA);
 
 
 
@@ -104,7 +105,8 @@ void updateControl()
   indicateVolume(POT_PIN);
 
   /// Retrieve the sensor's detection distance based on duration
-  detectSensor(LEFT_TRIGGER_PIN, LEFT_ECHO_PIN, LEFT_LEDS_PIN);
+  detectLeftSensor(LEFT_TRIGGER_PIN, LEFT_ECHO_PIN, LEFT_LEDS_PIN);
+  detectRightSensor(RIGHT_TRIGGER_PIN, RIGHT_ECHO_PIN, RIGHT_LEDS_PIN);
 
   // ultrasonic_value = ultrasonic_value <= 0 && ultrasonic_value > 100 ? 0 : ultrasonic_value;
   // detectSensorByDistance(left_sensor_value, POT_PIN);
@@ -116,12 +118,8 @@ void updateControl()
  *
  * @return int
  */
-int updateAudio()
-{
-  /// return the phMod of the modulation fm frequency
-  int sine = aSin.next();
-
-  return (sine * volume) >> 8;
+int updateAudio() {
+  return ((aSin.next() + bSin.next())* volume) >> 8;
 }
 
 void loop()
@@ -132,12 +130,18 @@ void loop()
 void detectSensorByDistance(int pot_pin)
 {
 
-  /// if the sensor detects at a certain distance, play the audio
-  if (left_distance > 0 && left_distance < MAX_DISTANCE)
-  {
 
-    volume = getVolume(pot_pin);
+  bool hasSound = (left_distance > 0 && left_distance < MAX_DISTANCE) || (right_distance > 0 && right_distance < MAX_DISTANCE);
+
+  if (hasSound == true) {
     /// Set the volume value based on the potentionmeter's value
+    volume = getVolume(pot_pin);
+  } else {
+    volume = (volume > 10) ? volume - 2 : 0;     
+  }
+
+  /// if the sensor detects at a certain distance, play the audio
+  if (left_distance > 0 && left_distance < MAX_DISTANCE) {
 
     /// map the knob to carrier frequency
     int sine_freq = kMapSine(left_distance);
@@ -145,12 +149,14 @@ void detectSensorByDistance(int pot_pin)
     int smoothed_freq = kSmoothFreq.next(sine_freq);
     aSin.setFreq(smoothed_freq);
   }
-  else
-  {
-
-    /// don't play the audio
-    volume = (volume > 10) ? volume - 2 : 0;      
-  }
+  
+  if (right_distance > 0 && right_distance < MAX_DISTANCE) {
+    /// map the knob to carrier frequency
+    int sine_freq = kMapSine(left_distance);
+    
+    int smoothed_freq = kSmoothFreq.next(sine_freq);
+    bSin.setFreq(smoothed_freq);
+  } 
 }
 
 void indicateVolume(int pot_pin)
@@ -192,7 +198,7 @@ byte getVolume(int pot_pin)
   return map(pot_value, POT_MIN, POT_MAX, VOLUME_MIN, VOLUME_MAX);
 }
 
-void detectSensor(int trig_pin, int echo_pin, int led_pin)
+void detectLeftSensor(int trig_pin, int echo_pin, int led_pin)
 {
   left_duration = getSensorDuration(trig_pin, echo_pin);
   left_distance = left_duration * 0.034 / 2;
@@ -200,6 +206,24 @@ void detectSensor(int trig_pin, int echo_pin, int led_pin)
   int ambience = map(left_distance, SENSOR_MIN, SENSOR_MAX, SOUND_MIN, SOUND_MAX);
 
   if (left_distance < MAX_DISTANCE)
+  {
+    {
+      analogWrite(led_pin, SOUND_MAX - ambience);
+    }
+  }
+  else
+  {
+    analogWrite(led_pin, 0);
+  }
+}
+void detectRightSensor(int trig_pin, int echo_pin, int led_pin)
+{
+  right_duration = getSensorDuration(trig_pin, echo_pin);
+  right_distance = right_duration * 0.034 / 2;
+
+  int ambience = map(right_distance, SENSOR_MIN, SENSOR_MAX, SOUND_MIN, SOUND_MAX);
+
+  if (right_distance < MAX_DISTANCE)
   {
     {
       analogWrite(led_pin, SOUND_MAX - ambience);
