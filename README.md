@@ -3,7 +3,7 @@
 
 ## Description
 
-The theremin, an already-existing instrument that adjusts pitch depending on the user's hand location, served as the inspiration for this project. If the distance is close to its sensors, the LED lights on either side will shine brightly; otherwise, they will dim as far as the sensors can detect the distance. The instrument's volume dial, which may be used to change the volume, and its LED indicators are also present. The device's goal is to slowly move or remain constant on the hand movement sensed by the instrument while maintaining the proper balance of acceptable LED brightness and pitch.
+A theremin, but with a nice touch. It is a portable music instrument that adjusts the pitch depending on the user's hand location, and it serves as the inspiration for this project. Whenver you play music instruments with the pitch, I always find it very calm and relaxing when playing them which is why I chose to do this project for the topic on meditation. If the distance is close to its sensors, the LED lights on either side will shine brightly; otherwise, they will dim as far as the sensors can detect them. The music instrument's dial changes the volume and indicates its level through the 3 designated LEDs. The intended goal for this device is to slowly move or remain constant on the hand movement sensed by the instrument while maintaining the proper balance of acceptable LED brightness and pitch from both hands. 
 
 ## Requirements
 - ### Hardware
@@ -15,7 +15,7 @@ The theremin, an already-existing instrument that adjusts pitch depending on the
     - ~~Small Speaker~~
     - Auxiliary Cable
     - 3.5mm Audio Jack
-    - ~~Alligator Clips~~
+    - Alligator Clips
     - ~~LDR Sensor~~
     - Ultrasonic Sensor (x2)
     - Potentiometer
@@ -40,6 +40,13 @@ The theremin, an already-existing instrument that adjusts pitch depending on the
   - Language:
     - C++
 
+
+## Instructions
+1. Turn on the thereMINpy
+2. Input the audio source to the 3.5mm audio jack socket
+3. Set the volume the desired level
+4. Place the hands above the sensors
+5. Freely play around by moving your hands up & down
 
 ## Diagram
 
