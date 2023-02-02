@@ -52,8 +52,8 @@ const int RIGHT_LEDS_PIN = 5;
 const int LEFT_LEDS_PIN = 6;
 
 /// Default minmax values for the volume pot,
-const int POT_MIN = 1023;
-const int POT_MAX = 0;
+const int POT_MIN = 0;
+const int POT_MAX = 1023;
 
 /// Default Digital Pins for the Ultrasonic Sensor
 const int SENSOR_MIN = 326; 
