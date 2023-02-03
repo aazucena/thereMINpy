@@ -8,6 +8,9 @@ A theremin, but with a nice touch. It is a portable music instrument that adjust
 ## Requirements
 - ### Hardware
   - #### Parts
+    - Terminals
+    - Electric Tape
+    - Zip Ties
     - Arduino UNO Board
     - Jump Wires
     - Solderable Wires 
@@ -50,7 +53,7 @@ A theremin, but with a nice touch. It is a portable music instrument that adjust
 
 ## Diagram
 
-![diagram](docs\docs/diagrams/thereMINpy.png)
+![diagram](docs\diagrams\thereMINpy.png)
 
 ## Iterations
 - ### First
