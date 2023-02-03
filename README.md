@@ -47,13 +47,13 @@ A theremin, but with a nice touch. It is a portable music instrument that adjust
 ## Instructions
 1. Turn on the thereMINpy
 2. Input the audio source to the 3.5mm audio jack socket
-3. Set the volume the desired level
+3. Set the volume to the desired level
 4. Place the hands above the sensors
 5. Freely play around by moving your hands up & down
 
 ## Diagram
 
-![diagram](docs\diagrams\thereMINpy.png)
+![diagram](/docs/diagrams/thereMINpy.png)
 
 ## Iterations
 - ### First
@@ -64,7 +64,7 @@ A theremin, but with a nice touch. It is a portable music instrument that adjust
   - Have the device be in a small form factor
   - Attach the device with a small speaker
 
-![iteration-1](docs\designs\iteration_1.png)
+![iteration-1](/docs/designs/iteration_1.png)
 
 - ### Second
   - Cancel the plan to add the pulsing lights 
@@ -73,7 +73,7 @@ A theremin, but with a nice touch. It is a portable music instrument that adjust
   - Upgrade the small speakers to bigger speakers
   - Change the device form factor to the larger size
   
-![iteration-2](docs\designs\iteration_2.png)
+![iteration-2](/docs/designs/iteration_2.png)
 - ### Third (final)
   - Add the volume dial to change the gain based on the potentiometer's value
   - Reintegrate 10 pulsing white LEDs
@@ -82,7 +82,7 @@ A theremin, but with a nice touch. It is a portable music instrument that adjust
   - Include a 2 arc structure as it can function either as the table legs or a leg rests for the instrument
   - Add 3 indicator lights for the volume dial potentiometer
 
-![iteration-3](docs\designs\iteration_3.png)
+![iteration-3](/docs/designs/iteration_3.png)
 
 ## Pseudocode
 
